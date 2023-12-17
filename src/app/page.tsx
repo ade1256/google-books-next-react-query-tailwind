@@ -33,7 +33,7 @@ const HomePage = () => {
   );
   const urlParams = new URLSearchParams(filter).toString();
   const { data, error, isLoading } = useQuery<any, any>({
-    queryKey: ["todos", debounceSearchQuery, urlParams],
+    queryKey: ["books", debounceSearchQuery, urlParams],
     queryFn: () => GET_VOLUMES(debounceSearchQuery, urlParams),
     enabled: !!debounceSearchQuery,
   });

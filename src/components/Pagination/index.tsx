@@ -30,15 +30,20 @@ const Pagination: React.FC<PaginationProps> = ({
         Prev
       </button>
       <div className="px-4 py-2 bg-white text-gray-700">
-        page {realCurrentPage} of {totalPages} total page
+        page {realCurrentPage} of {Number.isNaN(totalPages) ? 1 : totalPages}{" "}
+        total page
       </div>
       <button
         onClick={() => onPageChange(currentPage + maxResults)}
         disabled={
-          realCurrentPage === totalPages || realCurrentPage > totalPages
+          realCurrentPage === totalPages ||
+          realCurrentPage > totalPages ||
+          Number.isNaN(totalPages)
         }
         className={`px-4 py-2 rounded-r text-white ${
-          realCurrentPage === totalPages || realCurrentPage > totalPages
+          realCurrentPage === totalPages ||
+          realCurrentPage > totalPages ||
+          Number.isNaN(totalPages)
             ? "bg-gray-400 cursor-not-allowed"
             : "bg-blue-500 hover:bg-blue-600"
         }`}

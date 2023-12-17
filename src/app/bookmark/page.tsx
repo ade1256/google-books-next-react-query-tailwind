@@ -1,6 +1,5 @@
 "use client";
 import BookCard from "@/components/BookCard";
-import InputSearch from "@/components/InputSearch";
 import Loading from "@/components/Loading";
 import Pagination from "@/components/Pagination";
 import { useBookmark } from "@/state/bookmark";
