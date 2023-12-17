@@ -1,3 +1,4 @@
+"use client";
 import { BookmarkSimple } from "@phosphor-icons/react/dist/ssr";
 import React from "react";
 
@@ -28,7 +29,7 @@ const BookCard: React.FC<BookCardProps> = ({
   onBookmarkClick,
 }) => {
   const classWrapper =
-    "relative rounded overflow-hidden shadow-lg rounded-lg p-2 " +
+    "relative rounded overflow-hidden shadow-lg rounded-lg p-2 bg-white " +
     `${variant === "grid" ? "w-[272px]" : "w-full flex"}`;
   return (
     <div className={classWrapper}>

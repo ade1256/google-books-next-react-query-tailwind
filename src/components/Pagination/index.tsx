@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 
 interface PaginationProps {
@@ -13,6 +14,8 @@ const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
   maxResults,
 }) => {
+  const realCurrentPage =
+    currentPage === 0 ? 1 : Math.floor(currentPage / maxResults + 1);
   return (
     <div className="flex items-center justify-center my-4">
       <button
@@ -27,20 +30,15 @@ const Pagination: React.FC<PaginationProps> = ({
         Prev
       </button>
       <div className="px-4 py-2 bg-white text-gray-700">
-        page {currentPage === 0 ? "1" : Math.floor(currentPage / maxResults)} of{" "}
-        {totalPages} total items
+        page {realCurrentPage} of {totalPages} total page
       </div>
       <button
         onClick={() => onPageChange(currentPage + maxResults)}
         disabled={
-          currentPage === totalPages ||
-          currentPage > totalPages ||
-          totalPages === 1
+          realCurrentPage === totalPages || realCurrentPage > totalPages
         }
         className={`px-4 py-2 rounded-r text-white ${
-          currentPage === totalPages ||
-          currentPage > totalPages ||
-          totalPages === 1
+          realCurrentPage === totalPages || realCurrentPage > totalPages
             ? "bg-gray-400 cursor-not-allowed"
             : "bg-blue-500 hover:bg-blue-600"
         }`}

@@ -1,5 +1,6 @@
 "use client";
 import { Open_Sans } from "next/font/google";
+import "react-datepicker/dist/react-datepicker.css";
 import "./globals.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";

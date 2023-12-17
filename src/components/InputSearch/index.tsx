@@ -8,7 +8,7 @@ interface InputSearchProps {
 
 const InputSearch: React.FC<InputSearchProps> = ({ value, onChange }) => {
   return (
-    <div className="flex items-center border rounded overflow-hidden w-full">
+    <div className="flex items-center border rounded overflow-hidden w-full bg-white">
       <input
         type="text"
         value={value}

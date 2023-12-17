@@ -2,14 +2,18 @@
 
 import BookCard from "@/components/BookCard";
 import InputSearch from "@/components/InputSearch";
+import InputSelect from "@/components/InputSelect";
+import Loading from "@/components/Loading";
 import Pagination from "@/components/Pagination";
+import YearPicker from "@/components/YearPicker";
+import useDebounce from "@/hooks/useDebounce";
 import { GET_VOLUMES } from "@/services/books.service";
 import { useBookmark } from "@/state/bookmark";
 import { useLayout } from "@/state/layout";
 import { ListDashes, SquaresFour } from "@phosphor-icons/react/dist/ssr";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const HomePage = () => {
   const router = useRouter();
@@ -20,12 +24,18 @@ const HomePage = () => {
   const [filter, setFilter] = useState<any>({
     maxResults: 16,
     startIndex: 0,
+    orderBy: "relevance",
+    year: "",
   });
+  const debounceSearchQuery = useDebounce(
+    `${searchQuery}${filter.year !== "" ? ` ${filter.year}` : ""}`,
+    500
+  );
   const urlParams = new URLSearchParams(filter).toString();
   const { data, error, isLoading } = useQuery<any, any>({
-    queryKey: ["todos", searchQuery, filter],
-    queryFn: () => GET_VOLUMES(searchQuery, urlParams),
-    enabled: !!searchQuery,
+    queryKey: ["todos", debounceSearchQuery, urlParams],
+    queryFn: () => GET_VOLUMES(debounceSearchQuery, urlParams),
+    enabled: !!debounceSearchQuery,
   });
 
   if (error) {
@@ -43,11 +53,40 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div className="flex flex-col gap-2 p-8">
-      <div className="flex gap-8 items-center">
+    <div className="flex flex-col gap-2 p-8 bg-blue-200">
+      <div className="flex gap-2 items-center">
         <InputSearch value={searchQuery} onChange={setSearchQuery} />
+        <div>
+          <YearPicker
+            onYearChange={(year: Date | null) =>
+              setFilter({ ...filter, year: year?.getFullYear().toString() })
+            }
+            value={filter.year ? new Date(filter.year) : new Date()}
+          />
+        </div>
+        <div className="p-2 rounded-lg bg-white shrink-0">
+          <InputSelect
+            options={[
+              {
+                label: "Newest",
+                value: "newest",
+              },
+              {
+                label: "Relevance",
+                value: "relevance",
+              },
+            ]}
+            onChange={(e: any) =>
+              setFilter({ ...filter, orderBy: e.target.value })
+            }
+            value={filter.orderBy}
+          />
+        </div>
         {!hydrate && (
-          <div onClick={() => setLayout(layout === "grid" ? "list" : "grid")}>
+          <div
+            onClick={() => setLayout(layout === "grid" ? "list" : "grid")}
+            className="p-2 rounded-lg bg-white"
+          >
             {layout === "grid" ? (
               <SquaresFour size={32} color="grey" weight="fill" />
             ) : (
@@ -56,74 +95,62 @@ const HomePage = () => {
           </div>
         )}
       </div>
+      <h1 className="py-4">
+        Search result: {searchQuery}{" "}
+        {data?.totalItems && `(${data.totalItems} total items)`}
+      </h1>
       <div
         className={`flex flex-wrap gap-8 ${
           !hydrate && layout === "list" ? "flex-col" : ""
         }`}
       >
-        {isLoading && <div>Loading...</div>}
-        {data?.items ? (
-          data.items.map((book: any) => (
-            <BookCard
-              key={book.id}
-              title={book.volumeInfo.title}
-              author={
-                book.volumeInfo.authors
-                  ? book.volumeInfo.authors.join(", ")
-                  : ""
-              }
-              imageUrl={book.volumeInfo.imageLinks?.thumbnail}
-              publishedDate={book.volumeInfo.publishedDate}
-              publisher={book.volumeInfo.publisher ?? ""}
-              description={book.volumeInfo.description}
-              variant={layout}
-              onClick={() => router.push(`/${book.id}`)}
-              onBookmarkClick={() => {
-                if (bookmark.filter((item) => item.id === book.id).length > 0) {
-                  setBookmark(bookmark.filter((item) => item.id !== book.id));
-                } else {
-                  setBookmark([
-                    ...bookmark,
-                    {
-                      id: book.id,
-                      title: book.volumeInfo.title,
-                      authors: book.volumeInfo.authors,
-                      imageUrl: book.volumeInfo.imageLinks?.thumbnail,
-                      publishedDate: book.volumeInfo.publishedDate,
-                      publisher: book.volumeInfo.publisher,
-                      description: book.volumeInfo.description,
-                    },
-                  ]);
+        {isLoading && <Loading />}
+        {data?.items
+          ? data.items.map((book: any) => (
+              <BookCard
+                key={book.id}
+                title={book.volumeInfo.title}
+                author={
+                  book.volumeInfo.authors
+                    ? book.volumeInfo.authors.join(", ")
+                    : ""
                 }
-              }}
-              isBookmarked={
-                bookmark.filter((item) => item.id === book.id).length > 0
-              }
-            />
-          ))
-        ) : (
-          <div>No data</div>
-        )}
+                imageUrl={book.volumeInfo.imageLinks?.thumbnail}
+                publishedDate={book.volumeInfo.publishedDate}
+                publisher={book.volumeInfo.publisher ?? ""}
+                description={book.volumeInfo.description}
+                variant={layout}
+                onClick={() => router.push(`/book/${book.id}`)}
+                onBookmarkClick={() => {
+                  if (
+                    bookmark.filter((item) => item.id === book.id).length > 0
+                  ) {
+                    setBookmark(bookmark.filter((item) => item.id !== book.id));
+                  } else {
+                    setBookmark([
+                      ...bookmark,
+                      {
+                        id: book.id,
+                        title: book.volumeInfo.title,
+                        authors: book.volumeInfo.authors,
+                        imageUrl: book.volumeInfo.imageLinks?.thumbnail,
+                        publishedDate: book.volumeInfo.publishedDate,
+                        publisher: book.volumeInfo.publisher,
+                        description: book.volumeInfo.description,
+                      },
+                    ]);
+                  }
+                }}
+                isBookmarked={
+                  bookmark.filter((item) => item.id === book.id).length > 0
+                }
+              />
+            ))
+          : !isLoading && <div>No data</div>}
       </div>
-      <div className="flex gap-2">
-        {/* <button
-          onClick={() =>
-            setFilter({ ...filter, startIndex: filter.startIndex - 1 })
-          }
-          disabled={filter.startIndex === 0}
-        >
-          prev
-        </button>
-        <button
-          onClick={() =>
-            setFilter({ ...filter, startIndex: filter.startIndex + 1 })
-          }
-          disabled={data?.totalItems === 0 || data?.items === undefined}
-        >
-          next
-        </button> */}
+      <div className="flex gap-2 justify-around">
         <Pagination
-          totalPages={Math.floor(data?.totalItems ?? 10 / filter.maxResults)}
+          totalPages={Math.floor(data?.totalItems / filter.maxResults)}
           currentPage={filter.startIndex}
           onPageChange={(page) => setFilter({ ...filter, startIndex: page })}
           maxResults={filter.maxResults}
