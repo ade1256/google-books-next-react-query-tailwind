@@ -1,5 +1,5 @@
 "use client";
-
+import { useEffect, useState } from "react";
 import BookCard from "@/components/BookCard";
 import InputSearch from "@/components/InputSearch";
 import InputSelect from "@/components/InputSelect";
@@ -13,7 +13,6 @@ import { useLayout } from "@/state/layout";
 import { ListDashes, SquaresFour } from "@phosphor-icons/react/dist/ssr";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
 const HomePage = () => {
   const router = useRouter();
@@ -37,13 +36,6 @@ const HomePage = () => {
     queryFn: () => GET_VOLUMES(debounceSearchQuery, urlParams),
     enabled: !!debounceSearchQuery,
   });
-
-  if (error) {
-    return (
-      <div>An error has occurred: {error.response.data.error.message}</div>
-    );
-  }
-
   useEffect(() => {
     const rehydrated = async () => {
       await useLayout.persist.rehydrate();
@@ -52,7 +44,19 @@ const HomePage = () => {
     rehydrated();
   }, []);
 
-  return (
+  if (error) {
+    return (
+      <div>An error has occurred: {error.response.data.error.message}</div>
+    );
+  }
+
+  return hydrate ? (
+    <div className="flex flex-col gap-2 p-8">
+      <div className="flex flex-col gap-8 align-center justify-center">
+        <Loading />
+      </div>
+    </div>
+  ) : (
     <div className="flex flex-col gap-2 p-8 bg-blue-200">
       <div className="flex gap-2 items-center">
         <InputSearch value={searchQuery} onChange={setSearchQuery} />
@@ -82,18 +86,16 @@ const HomePage = () => {
             value={filter.orderBy}
           />
         </div>
-        {!hydrate && (
-          <div
-            onClick={() => setLayout(layout === "grid" ? "list" : "grid")}
-            className="p-2 rounded-lg bg-white"
-          >
-            {layout === "grid" ? (
-              <SquaresFour size={32} color="grey" weight="fill" />
-            ) : (
-              <ListDashes size={32} color="grey" weight="fill" />
-            )}
-          </div>
-        )}
+        <div
+          onClick={() => setLayout(layout === "grid" ? "list" : "grid")}
+          className="p-2 rounded-lg bg-white"
+        >
+          {layout === "grid" ? (
+            <SquaresFour size={32} color="grey" weight="fill" />
+          ) : (
+            <ListDashes size={32} color="grey" weight="fill" />
+          )}
+        </div>
       </div>
       <h1 className="py-4">
         Search result: {searchQuery}{" "}

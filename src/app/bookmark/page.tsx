@@ -28,8 +28,10 @@ const BookmarkPage = () => {
   }, []);
 
   return hydrate ? (
-    <div className="py-8">
-      <Loading />
+    <div className="flex flex-col gap-2 p-8">
+      <div className="flex flex-col gap-8 align-center justify-center">
+        <Loading />
+      </div>
     </div>
   ) : (
     <div className="flex flex-col gap-2 p-8">
